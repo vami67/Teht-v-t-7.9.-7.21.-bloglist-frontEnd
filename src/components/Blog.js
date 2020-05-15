@@ -1,47 +1,71 @@
 import React, { useState } from 'react'
-import PropTypes from 'prop-types'
+import { useSelector, useDispatch } from 'react-redux'
+import { likeBlog, deleteBlog, addCommentToBlog } from '../reducers/blogReducer'
+import { useParams, useHistory } from "react-router-dom"
 
-const Blog = ({ blog, handleLike, handleRemove, own }) => {
-  const [visible, setVisible] = useState(false)
+const Blog = () => {
 
-  const blogStyle = {
-    paddingTop: 10,
-    paddingLeft: 2,
-    border: 'solid',
-    borderWidth: 1,
-    marginBottom: 5
+  const dispatch = useDispatch()
+  const history = useHistory()
+  const id = useParams().id
+  const [content, setContent] = useState('')
+
+  const handleLike = async (id) => {
+    dispatch(likeBlog(id))
   }
 
-  const label = visible ? 'hide' : 'view'
+  const handleRemove = async (id) => {
+    dispatch(deleteBlog(id))
+    history.push('/')
+  }
+
+  const blog = useSelector(state => state.blogs.find(blog => blog.id === id))
+  const user = useSelector(state => state.user)
+
+  if (!blog) {
+    return null
+  }
+
+  const own = user.username === blog.user.username
+
+  const handleNewComment = (event) => {
+    event.preventDefault()
+    dispatch(addCommentToBlog(id, { content }))
+    setContent('')
+  }
 
   return (
-    <div style={blogStyle} className='blog'>
-      <div>
-        <i>{blog.title}</i> by {blog.author} <button onClick={() => setVisible(!visible)}>{label}</button>
+    <div>
+      <h2>{blog.title} {blog.author}</h2>
+      <div><a href={blog.url}>{blog.url}</a></div>
+
+      <div>likes {blog.likes}
+        <button onClick={() => handleLike(blog.id)}>like</button>
       </div>
-      {visible&&(
-        <div>
-          <div>{blog.url}</div>
-          <div>likes {blog.likes}
-            <button onClick={() => handleLike(blog.id)}>like</button>
-          </div>
-          <div>{blog.user.name}</div>
-          {own&&<button onClick={() => handleRemove(blog.id)}>remove</button>}
-        </div>
-      )}
+      {own && <button onClick={() => handleRemove(blog.id)}>remove</button>}
+      <div>added by {blog.user.name}</div>
+
+      <h3>comments</h3>
+
+      <form onSubmit={handleNewComment}>
+        <input
+          id='content'
+          value={content}
+          onChange={({ target }) => setContent(target.value)}
+        />
+        <button id="create">add comment</button>
+      </form>
+
+      <ul>
+        {blog.comments.map(comment =>
+          <li key={comment.id}>
+            {comment.content}
+          </li>
+        )}
+      </ul>
+
     </div>
   )
-}
-
-Blog.propTypes = {
-  blog: PropTypes.shape({
-    title: PropTypes.string.isRequired,
-    author: PropTypes.string.isRequired,
-    url: PropTypes.string.isRequired,
-  }).isRequired,
-  handleLike: PropTypes.func.isRequired,
-  handleRemove: PropTypes.func.isRequired,
-  own: PropTypes.bool.isRequired
 }
 
 export default Blog

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import storage from '../utils/storage'
 
-const baseUrl = 'http://localhost:3001/api/blogs'
+const baseUrl = 'http://localhost:3001/api/users'
 
 const getConfig = () => {
   return {
@@ -19,12 +19,6 @@ const create = (blog) => {
   return request.then(response => response.data)
 }
 
-const createCommentToBlog = (id,comment) => {
-  const url = `${baseUrl}/${id}/comments`
-  const request = axios.post(url, comment, getConfig())
-  return request.then(response => response.data)
-}
-
 const update = (blog) => {
   const request = axios.put(`${baseUrl}/${blog.id}`, blog, getConfig())
   return request.then(response => response.data)
@@ -35,4 +29,4 @@ const remove = (id) => {
   return request.then(response => response.data)
 }
 
-export default { getAll, create, update, remove, createCommentToBlog }
+export default { getAll, create, update, remove }
